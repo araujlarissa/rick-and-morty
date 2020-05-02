@@ -1,70 +1,65 @@
-/* eslint-disable jsx-a11y/label-has-associated-control */
 import React, { useEffect, useState } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import { Pagination } from '@material-ui/lab';
 
 import api from './services/api';
 
 import RadioFilter from './components/RadioFilter';
 
+const typeGender = ['Female', 'Male', 'unknown', 'all'];
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    '& > *': {
+      marginTop: theme.spacing(2),
+    },
+  },
+}));
+
 function App() {
+  const classes = useStyles();
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [characters, setCharacters] = useState([]);
   const [gender, setGender] = useState('all');
 
+  const handlePageChange = (event, value) => {
+    setPage(value);
+  };
+
   useEffect(() => {
     const loadCharacters = async () => {
-      const { data } = await api.get('?page=2');
+      const { data } = await api.get(`?page=${page}`);
+      const { info, results } = data;
 
-      switch (gender) {
-        case 'female':
+      setTotalPages(info.pages);
+
+      for (let i = 0; i < typeGender.length - 1; i++) {
+        if (gender === typeGender[i])
           setCharacters(
-            data.results.filter((character) => character.gender === 'Female')
+            results.filter((character) => character.gender === typeGender[i])
           );
-          break;
-        case 'male':
-          setCharacters(
-            data.results.filter((character) => character.gender === 'Male')
-          );
-          break;
-        case 'unknown':
-          setCharacters(
-            data.results.filter((character) => character.gender === 'unknown')
-          );
-          break;
-        default:
-          setCharacters(data.results);
       }
+
+      if (gender === 'all') setCharacters(results);
     };
 
     loadCharacters();
-  }, [gender]);
+  }, [page, gender]);
 
   return (
     <div>
       <form>
         <label htmlFor="gender">Gender</label>
-        <RadioFilter
-          name="gender"
-          gender="all"
-          check={gender}
-          action={() => setGender('all')}
-        />
-        <RadioFilter
-          name="gender"
-          gender="female"
-          check={gender}
-          action={() => setGender('female')}
-        />
-        <RadioFilter
-          name="gender"
-          gender="male"
-          check={gender}
-          action={() => setGender('male')}
-        />
-        <RadioFilter
-          name="gender"
-          gender="unknown"
-          check={gender}
-          action={() => setGender('unknown')}
-        />
+        {typeGender.map((type) => (
+          <RadioFilter
+            name="gender"
+            gender={type}
+            check={gender}
+            action={() => setGender(type)}
+          />
+        ))}
       </form>
 
       <ul data-testid="character-list">
@@ -77,6 +72,15 @@ function App() {
           </li>
         ))}
       </ul>
+
+      <div className={classes.root}>
+        <Pagination
+          count={totalPages}
+          variant="outlined"
+          page={page}
+          onChange={handlePageChange}
+        />
+      </div>
     </div>
   );
 }
