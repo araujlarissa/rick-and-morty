@@ -43,6 +43,8 @@ module.exports = {
     'no-console': ["error", { allow: ["tron"] }],
     'global-require': 'off',
     'jsx-a11y/anchor-is-valid': 'off',
-    'react-hooks/exhaustive-deps': 'off'
+    'react-hooks/exhaustive-deps': 'off',
+    'no-plusplus': 'off',
+    'jsx-a11y/label-has-associated-control': 'off'
   }
 };
